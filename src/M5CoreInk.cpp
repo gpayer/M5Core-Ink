@@ -9,8 +9,8 @@ M5CoreInk::~M5CoreInk() {
 
 int M5CoreInk::begin(bool InkEnable, bool wireEnable, bool SpeakerEnable) {
     pinMode(POWER_HOLD_PIN, OUTPUT);
-    gpio_hold_en((gpio_num_t)POWER_HOLD_PIN);
     digitalWrite(POWER_HOLD_PIN, HIGH);  // Hold power
+    gpio_hold_en((gpio_num_t)POWER_HOLD_PIN);
 
     pinMode(1, OUTPUT);
 
@@ -54,10 +54,11 @@ void M5CoreInk::shutdown() {
     M5Ink.deepSleep();
     delay(50);
     gpio_hold_dis((gpio_num_t)POWER_HOLD_PIN);
+    esp_deep_sleep_start();
     digitalWrite(POWER_HOLD_PIN, LOW);
-    // esp_deep_sleep_start();
 }
 int M5CoreInk::shutdown(int seconds) {
+    M5Ink.deepSleep();
     rtc.clearIRQ();
     rtc.SetAlarmIRQ(seconds);
     delay(10);
@@ -66,6 +67,7 @@ int M5CoreInk::shutdown(int seconds) {
     return 0;
 }
 int M5CoreInk::shutdown(const RTC_TimeTypeDef &RTC_TimeStruct) {
+    M5Ink.deepSleep();
     rtc.clearIRQ();
     rtc.SetAlarmIRQ(RTC_TimeStruct);
     delay(10);
@@ -74,6 +76,7 @@ int M5CoreInk::shutdown(const RTC_TimeTypeDef &RTC_TimeStruct) {
 }
 int M5CoreInk::shutdown(const RTC_DateTypeDef &RTC_DateStruct,
                         const RTC_TimeTypeDef &RTC_TimeStruct) {
+    M5Ink.deepSleep();
     rtc.clearIRQ();
     rtc.SetAlarmIRQ(RTC_DateStruct, RTC_TimeStruct);
     delay(10);
