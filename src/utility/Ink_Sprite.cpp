@@ -1,4 +1,5 @@
 #include "Ink_Sprite.h"
+#include "lgfx/v1/lgfx_fonts.hpp"
 
 int Ink_Sprite::creatSprite(uint16_t posX, uint16_t posY, uint16_t width,
                             uint16_t height, bool copyFromMem) {
@@ -56,12 +57,12 @@ void Ink_Sprite::drawFullBuff(uint8_t *buff, bool bitMode) {
 }
 
 void Ink_Sprite::drawChar(uint16_t posX, uint16_t posY, char charData,
-                          const lgfx::FixedBMPfont *fontPtr) {
+                          const lgfx::IFont *fontPtr) {
     M5Canvas::drawChar(charData, posX, posY);
 }
 
 void Ink_Sprite::drawString(uint16_t posX, uint16_t posY, const char *charData,
-                            const lgfx::FixedBMPfont *fontPtr) {
+                            const lgfx::IFont *fontPtr) {
     M5Canvas::drawString(charData, posX, posY, fontPtr);
 }
 

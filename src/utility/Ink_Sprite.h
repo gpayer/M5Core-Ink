@@ -3,6 +3,7 @@
 
 // #include "Ink_eSPI.h"
 #include <M5GFX.h>
+#include "lgfx/v1/lgfx_fonts.hpp"
 
 #define CLEAR_DRAWBUFF 0x01
 #define CLEAR_LASTBUFF 0x02
@@ -28,9 +29,9 @@ class Ink_Sprite : public M5Canvas {
                   uint8_t* imageDataptr);
 
     void drawChar(uint16_t posX, uint16_t posY, char charData,
-                  const lgfx::FixedBMPfont* fontPtr = &fonts::AsciiFont24x48);
+                  const lgfx::IFont* fontPtr = &fonts::AsciiFont24x48);
     void drawString(uint16_t posX, uint16_t posY, const char* charData,
-                    const lgfx::FixedBMPfont* fontPtr = &fonts::AsciiFont8x16);
+                    const lgfx::IFont* fontPtr = &fonts::AsciiFont8x16);
 
     uint8_t* getSpritePtr() {
         return _spriteBuff;
