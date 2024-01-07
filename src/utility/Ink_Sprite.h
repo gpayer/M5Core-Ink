@@ -1,8 +1,8 @@
 #ifndef _INK_SPRITE_H_
 #define _INK_SPRITE_H_
 
-#include "Ink_eSPI.h"
-#include "M5GFX.h"
+// #include "Ink_eSPI.h"
+#include <M5GFX.h>
 
 #define CLEAR_DRAWBUFF 0x01
 #define CLEAR_LASTBUFF 0x02

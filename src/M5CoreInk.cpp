@@ -1,4 +1,5 @@
 #include "M5CoreInk.h"
+#include "esp_sleep.h"
 
 M5CoreInk::M5CoreInk(/* args */) {
 }
@@ -8,6 +9,7 @@ M5CoreInk::~M5CoreInk() {
 
 int M5CoreInk::begin(bool InkEnable, bool wireEnable, bool SpeakerEnable) {
     pinMode(POWER_HOLD_PIN, OUTPUT);
+    gpio_hold_en((gpio_num_t)POWER_HOLD_PIN);
     digitalWrite(POWER_HOLD_PIN, HIGH);  // Hold power
 
     pinMode(1, OUTPUT);
@@ -51,33 +53,31 @@ void M5CoreInk::update() {
 void M5CoreInk::shutdown() {
     M5Ink.deepSleep();
     delay(50);
-    esp_deep_sleep_start();
+    gpio_hold_dis((gpio_num_t)POWER_HOLD_PIN);
     digitalWrite(POWER_HOLD_PIN, LOW);
+    // esp_deep_sleep_start();
 }
 int M5CoreInk::shutdown(int seconds) {
-    rtc.disableIRQ();
+    rtc.clearIRQ();
     rtc.SetAlarmIRQ(seconds);
-    gpio_wakeup_enable(GPIO_NUM_19, gpio_int_type_t::GPIO_INTR_LOW_LEVEL);
-    esp_sleep_enable_gpio_wakeup();
-    shutdown();
+    delay(10);
+    esp_deep_sleep_start();
 
     return 0;
 }
 int M5CoreInk::shutdown(const RTC_TimeTypeDef &RTC_TimeStruct) {
-    rtc.disableIRQ();
+    rtc.clearIRQ();
     rtc.SetAlarmIRQ(RTC_TimeStruct);
-    gpio_wakeup_enable(GPIO_NUM_19, gpio_int_type_t::GPIO_INTR_LOW_LEVEL);
-    esp_sleep_enable_gpio_wakeup();
-    shutdown();
+    delay(10);
+    esp_deep_sleep_start();
     return 0;
 }
 int M5CoreInk::shutdown(const RTC_DateTypeDef &RTC_DateStruct,
                         const RTC_TimeTypeDef &RTC_TimeStruct) {
-    rtc.disableIRQ();
+    rtc.clearIRQ();
     rtc.SetAlarmIRQ(RTC_DateStruct, RTC_TimeStruct);
-    gpio_wakeup_enable(GPIO_NUM_19, gpio_int_type_t::GPIO_INTR_LOW_LEVEL);
-    esp_sleep_enable_gpio_wakeup();
-    shutdown();
+    delay(10);
+    esp_deep_sleep_start();
     return 0;
 }
 

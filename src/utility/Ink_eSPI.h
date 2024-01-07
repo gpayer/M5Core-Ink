@@ -6,7 +6,7 @@
 #include "soc/spi_reg.h"
 #include "config.h"
 #include "WFT0154CZB3_INIT.h"
-#include "M5GFX.h"
+#include <M5GFX.h>
 
 // #define SPI_PORT VSPI
 

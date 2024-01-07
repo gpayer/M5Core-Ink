@@ -1,4 +1,5 @@
 #include "BM8563.h"
+#include "esp_sleep.h"
 
 RTC::RTC() {
 }
@@ -110,66 +111,75 @@ void RTC::SetDate(RTC_DateTypeDef *RTC_DateStruct) {
 }
 
 int RTC::SetAlarmIRQ(int afterSeconds) {
-    std::uint8_t reg_value = _i2c.readByte(BM8563_I2C_ADDR, 0x01) & ~0x0C;
+    // std::uint8_t reg_value = _i2c.readByte(BM8563_I2C_ADDR, 0x01) & ~0x0C;
 
     if (afterSeconds < 0) {  // disable timer
-        _i2c.writeByte(BM8563_I2C_ADDR, 0x01, reg_value & ~0x01);
-        _i2c.writeByte(BM8563_I2C_ADDR, 0x0E, 0x03);
-        return -1;
+        esp_sleep_disable_wakeup_source(ESP_SLEEP_WAKEUP_TIMER);
+        // _i2c.writeByte(BM8563_I2C_ADDR, 0x01, reg_value & ~0x01);
+        // _i2c.writeByte(BM8563_I2C_ADDR, 0x0E, 0x03);
+        return 0;
     }
 
-    std::size_t div         = 1;
-    std::uint8_t type_value = 0x82;
-    if (afterSeconds < 270) {
-        if (afterSeconds > 255) {
-            afterSeconds = 255;
-        }
-    } else {
-        div          = 60;
-        afterSeconds = (afterSeconds + 30) / div;
-        if (afterSeconds > 255) {
-            afterSeconds = 255;
-        }
-        type_value = 0x83;
-    }
-
-    _i2c.writeByte(BM8563_I2C_ADDR, 0x0E, type_value);
-    _i2c.writeByte(BM8563_I2C_ADDR, 0x0F, afterSeconds);
-    _i2c.writeByte(BM8563_I2C_ADDR, 0x01, (reg_value | 0x01) & ~0x80);
-    return afterSeconds * div;
+    // std::size_t div         = 1;
+    // std::uint8_t type_value = 0x82;
+    // if (afterSeconds < 270) {
+    //     if (afterSeconds > 255) {
+    //         afterSeconds = 255;
+    //     }
+    // } else {
+    //     div          = 60;
+    //     afterSeconds = (afterSeconds + 30) / div;
+    //     if (afterSeconds > 255) {
+    //         afterSeconds = 255;
+    //     }
+    //     type_value = 0x83;
+    // }
+    //
+    // _i2c.writeByte(BM8563_I2C_ADDR, 0x0E, type_value);
+    // _i2c.writeByte(BM8563_I2C_ADDR, 0x0F, afterSeconds);
+    // _i2c.writeByte(BM8563_I2C_ADDR, 0x01, (reg_value | 0x01) & ~0x80);
+    esp_sleep_enable_timer_wakeup(afterSeconds * uS_TO_S_FACTOR);
+    return 1;
 }
 
 int RTC::SetAlarmIRQ(const RTC_TimeTypeDef &RTC_TimeStruct) {
-    uint8_t irq_enable = false;
-    uint8_t out_buf[4] = {0x80, 0x80, 0x80, 0x80};
+    RTC_TimeTypeDef now;
+    GetTime(&now);
 
-    if (RTC_TimeStruct.Minutes >= 0) {
-        irq_enable = true;
-        out_buf[0] = byteToBcd2(RTC_TimeStruct.Minutes) & 0x7f;
-    }
-
-    if (RTC_TimeStruct.Hours >= 0) {
-        irq_enable = true;
-        out_buf[1] = byteToBcd2(RTC_TimeStruct.Hours) & 0x3f;
-    }
-
-    out_buf[2] = 0x80;
-    out_buf[3] = 0x80;
-
-    uint8_t reg_value = _i2c.readByte(BM8563_I2C_ADDR, 0x01);
-
-    if (irq_enable) {
-        reg_value |= (1 << 1);
-    } else {
-        reg_value &= ~(1 << 1);
-    }
-
-    for (int i = 0; i < 4; i++) {
-        _i2c.writeByte(BM8563_I2C_ADDR, 0x09 + i, out_buf[i]);
-    }
-    _i2c.writeByte(BM8563_I2C_ADDR, 0x01, reg_value);
-
-    return irq_enable ? 1 : 0;
+    int afterSeconds = (RTC_TimeStruct.Hours - now.Hours) * 3600 +
+                       (RTC_TimeStruct.Minutes - now.Minutes) * 60 +
+                       (RTC_TimeStruct.Seconds - now.Seconds);
+    return SetAlarmIRQ(afterSeconds);
+    // uint8_t irq_enable = false;
+    // uint8_t out_buf[4] = {0x80, 0x80, 0x80, 0x80};
+    //
+    // if (RTC_TimeStruct.Minutes >= 0) {
+    //     irq_enable = true;
+    //     out_buf[0] = byteToBcd2(RTC_TimeStruct.Minutes) & 0x7f;
+    // }
+    //
+    // if (RTC_TimeStruct.Hours >= 0) {
+    //     irq_enable = true;
+    //     out_buf[1] = byteToBcd2(RTC_TimeStruct.Hours) & 0x3f;
+    // }
+    //
+    // out_buf[2] = 0x80;
+    // out_buf[3] = 0x80;
+    //
+    // uint8_t reg_value = _i2c.readByte(BM8563_I2C_ADDR, 0x01);
+    //
+    // if (irq_enable) {
+    //     reg_value |= (1 << 1);
+    // } else {
+    //     reg_value &= ~(1 << 1);
+    // }
+    //
+    // for (int i = 0; i < 4; i++) {
+    //     _i2c.writeByte(BM8563_I2C_ADDR, 0x09 + i, out_buf[i]);
+    // }
+    // _i2c.writeByte(BM8563_I2C_ADDR, 0x01, reg_value);
+    //
+    // return SetAlarmIRQ(23);
 }
 
 int RTC::SetAlarmIRQ(const RTC_DateTypeDef &RTC_DateStruct,

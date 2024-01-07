@@ -2,8 +2,10 @@
 #define __BM8563_H__
 
 #include <Wire.h>
+#include <esp_sleep.h>
 #include "i2c_device.h"
 
+#define uS_TO_S_FACTOR 1000000ULL
 #define BM8563_I2C_ADDR 0x51
 
 typedef struct RTC_Time {
